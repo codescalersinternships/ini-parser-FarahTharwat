@@ -1,106 +1,105 @@
 package pkg
 
 import (
-	"INI_PARSER/pkg/utils"
 	"bufio"
-	"errors"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 )
 
+type stringer interface {
+	String() string
+}
 type IniParser struct {
-	Sections map[string]map[string]string
+	sections map[string]map[string]string
 }
 
 func NewIniParser() *IniParser {
 	return &IniParser{
-		Sections: make(map[string]map[string]string),
+		sections: make(map[string]map[string]string),
 	}
 }
-func (p * IniParser)Parse(scanner *bufio.Scanner , src string) (error){
+func (p *IniParser) parse(scanner *bufio.Scanner) error {
 	section := ""
-	bracket_pattern := `^\[.+\]$`
-	pair_pattern:= `^\s*[a-zA-Z][a-zA-Z0-9_]*[0-9]?\s*=\s*[^"]*$`
-	bracket_regex := regexp.MustCompile(bracket_pattern)
-	pair_regex := regexp.MustCompile(pair_pattern)
+	bracketPattern := `^\[.+\]$`
+	pairPattern := `^\s*[a-zA-Z][a-zA-Z0-9_]*[0-9]?\s*=\s*[^"]*$`
+	bracketRegex := regexp.MustCompile(bracketPattern)
+	pairRegex := regexp.MustCompile(pairPattern)
 	for scanner.Scan() {
-		line:=scanner.Text()
+		line := scanner.Text()
 		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, ";") || strings.HasPrefix(line, "#") || len(line)==0 {
+		if strings.HasPrefix(line, ";") || strings.HasPrefix(line, "#") || len(line) == 0 {
 			continue
-		}else if strings.HasPrefix(line, "[") {
-			if !bracket_regex.MatchString(line) {
+		} else if strings.HasPrefix(line, "[") {
+			if !bracketRegex.MatchString(line) {
 				return fmt.Errorf("invalid format at line: '%s', incorrect syntax for sections", line)
 			}
-			section=strings.Trim(line, "[]")
-			p.Sections[section]=make(map[string]string)
-		} else if !pair_regex.MatchString(line) {
+			section = strings.Trim(line, "[]")
+			p.sections[section] = make(map[string]string)
+		} else if !pairRegex.MatchString(line) {
 			return fmt.Errorf("invalid format at line: '%s', key-value pairs must be in the format key=value ", line)
-		}else {
-			pair:=strings.Split(line, "=")
-			if len(pair)==2 {
-				key:=strings.TrimSpace(pair[0])
-				value:=strings.TrimSpace(pair[1])
-				p.Sections[section][key]=value
+		} else {
+			pair := strings.SplitN(line, "=", 2)
+			if len(pair) == 2 {
+				key := strings.TrimSpace(pair[0])
+				value := strings.TrimSpace(pair[1])
+				p.sections[section][key] = value
 			}
 		}
 	}
 	return nil
 }
-func (p *IniParser)LoadFromString(text string) error {
-	scanner:=bufio.NewScanner(strings.NewReader(text))
-	err:= p.Parse(scanner, text)
+func (p *IniParser) LoadFromString(text string) error {
+	scanner := bufio.NewScanner(strings.NewReader(text))
+	err := p.parse(scanner)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *IniParser)LoadFromFile(path string) error {
-	file,err := utils.OpenFile(path)
+func (p *IniParser) LoadFromFile(path string) error {
+	content, err := os.ReadFile(path)
 	if err != nil {
-		return err}
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
-	err = p.Parse(scanner, path)
-	if err != nil {
-			return err}
-	return nil
+		return err
+	}
+	return p.LoadFromString(string(content))
 }
 
-func (p *IniParser)Get(section string, key string) (string, error) {
-	if val, ok := p.Sections[section][key]; ok {
+func (p *IniParser) Get(section string, key string) (string, error) {
+	if val, ok := p.sections[section][key]; ok {
 		return val, nil
 	}
-	return "", errors.New("key not found")
+	fmt.Printf("section %s does not exist \n", section)
+	return " ", fmt.Errorf("key %s was not found", key)
 }
-func (p *IniParser)GetSectionsNames()([]string) {
-		var sections []string
-		for section := range p.Sections {
-			sections = append(sections, section)
-		}
-		return sections
+func (p *IniParser) GetSectionNames() []string {
+	var sections []string
+	for section := range p.sections {
+		sections = append(sections, section)
+	}
+	return sections
 }
-func (p *IniParser)GetSections()(map[string]map[string]string) {
-	if p.Sections == nil {
+func (p *IniParser) GetSections() map[string]map[string]string {
+	if p.sections == nil {
 		return nil
 	}
-	return p.Sections
+	return p.sections
 }
-func (p *IniParser)Set(section string,key string,value string) (error) {
-	if _, ok := p.Sections[section]; ok {
-		p.Sections[section][key] = value
-		return nil
+func (p *IniParser) Set(section string, key string, value string) error {
+	if _, ok := p.sections[section]; !ok {
+		fmt.Printf("warning : section %s did not exit however it has been created", section)
 	}
-	return errors.New("section not found")
+	p.sections[section][key] = value
+	return nil
 }
-func (p *IniParser)ToString()(string) {
-	var text string
-	if p.Sections == nil {
+func (p *IniParser) String() string {
+	text := " "
+	if p.sections == nil {
 		return " "
 	}
-	for section, pairs := range p.Sections {
+	for section, pairs := range p.sections {
 		text += "[" + section + "]\n"
 		for key, value := range pairs {
 			text += key + "=" + value + "\n"
@@ -108,16 +107,30 @@ func (p *IniParser)ToString()(string) {
 	}
 	return text
 }
-func (p *IniParser)SaveToFile(filename string,path string)(error) {
-	file, err := utils.CreateFile(path,filename)
+func (p *IniParser) SaveToFile(path string) error {
+	file, err := os.Open(path)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	defer file.Close()
-	_, err = file.WriteString(p.ToString())
+	_, err = file.WriteString(p.String())
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	return nil
 }
-
+func (p *IniParser) print() {
+	getsections := p.GetSections()
+	if getsections == nil {
+		fmt.Println("No sections found.")
+	} else {
+		for section, kv := range getsections {
+			fmt.Println("Section:", section)
+			for key, value := range kv {
+				fmt.Printf("%s = %s\n", key, value)
+			}
+		}
+	}
+}
