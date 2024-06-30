@@ -8,6 +8,13 @@ import (
 	"strings"
 )
 
+const (
+	ErrorOpeningFile   = "no such file or directory"
+	ErrorMatchingPairs = "key-value pairs must be in the format key=value"
+	ErrorSectionSyntax = "incorrect syntax for sections"
+	ErrorEmptyMap      = "map is empty !"
+)
+
 type stringer interface {
 	String() string
 }
@@ -33,12 +40,12 @@ func (p *IniParser) parse(scanner *bufio.Scanner) error {
 			continue
 		} else if strings.HasPrefix(line, "[") {
 			if !bracketRegex.MatchString(line) {
-				return fmt.Errorf("invalid format at line: '%s', incorrect syntax for sections", line)
+				return fmt.Errorf("invalid format at line: '%s', %v", line, ErrorSectionSyntax)
 			}
 			section = strings.Trim(line, "[]")
 			p.sections[section] = make(map[string]string)
 		} else if !pairRegex.MatchString(line) {
-			return fmt.Errorf("invalid format at line: '%s', key-value pairs must be in the format key=value ", line)
+			return fmt.Errorf("invalid format at line: '%s', %v ", line, ErrorMatchingPairs)
 		} else {
 			pair := strings.SplitN(line, "=", 2)
 			if len(pair) == 2 {
@@ -58,7 +65,6 @@ func (p *IniParser) LoadFromString(text string) error {
 	}
 	return nil
 }
-
 func (p *IniParser) LoadFromFile(path string) error {
 	content, err := os.ReadFile(path)
 	if err != nil {
@@ -68,34 +74,46 @@ func (p *IniParser) LoadFromFile(path string) error {
 }
 
 func (p *IniParser) Get(section string, key string) (string, error) {
-	if val, ok := p.sections[section][key]; ok {
+	if len(p.sections) == 0 {
+		return " ", fmt.Errorf(ErrorEmptyMap)
+	}
+	values, isMapContainsKey := p.sections[section]
+	if !isMapContainsKey {
+		fmt.Printf("section %s does not exist \n", section)
+		return " ", fmt.Errorf("section %s does not exist \n", key)
+	}
+	if val, ok := values[key]; ok {
 		return val, nil
 	}
-	fmt.Printf("section %s does not exist \n", section)
 	return " ", fmt.Errorf("key %s was not found", key)
 }
-func (p *IniParser) GetSectionNames() []string {
+func (p *IniParser) GetSectionNames() (sectionNames []string, err error) {
 	var sections []string
 	for section := range p.sections {
 		sections = append(sections, section)
 	}
-	return sections
-}
-func (p *IniParser) GetSections() map[string]map[string]string {
-	if p.sections == nil {
-		return nil
+	if len(sections) == 0 {
+		return sections, fmt.Errorf(ErrorEmptyMap)
 	}
-	return p.sections
+	return sections, nil
 }
-func (p *IniParser) Set(section string, key string, value string) error {
+func (p *IniParser) GetSections() (map[string]map[string]string, error) {
+	if len(p.sections) == 0 {
+		return nil, fmt.Errorf(ErrorEmptyMap)
+	}
+	return p.sections, nil
+}
+func (p *IniParser) Set(section string, key string, value string) {
 	if _, ok := p.sections[section]; !ok {
 		fmt.Printf("warning : section %s did not exit however it has been created", section)
+		p.sections[section] = make(map[string]string)
+		p.sections[section][key] = value
+		return
 	}
 	p.sections[section][key] = value
-	return nil
 }
 func (p *IniParser) String() string {
-	text := " "
+	text := ""
 	if p.sections == nil {
 		return " "
 	}
@@ -108,7 +126,7 @@ func (p *IniParser) String() string {
 	return text
 }
 func (p *IniParser) SaveToFile(path string) error {
-	file, err := os.Open(path)
+	file, err := os.OpenFile(path,os.O_APPEND|os.O_WRONLY,0644)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -120,17 +138,4 @@ func (p *IniParser) SaveToFile(path string) error {
 		return err
 	}
 	return nil
-}
-func (p *IniParser) print() {
-	getsections := p.GetSections()
-	if getsections == nil {
-		fmt.Println("No sections found.")
-	} else {
-		for section, kv := range getsections {
-			fmt.Println("Section:", section)
-			for key, value := range kv {
-				fmt.Printf("%s = %s\n", key, value)
-			}
-		}
-	}
 }
