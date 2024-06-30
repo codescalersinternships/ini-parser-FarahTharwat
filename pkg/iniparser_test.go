@@ -27,7 +27,6 @@ func TestLoadFromString(t *testing.T) {
 	})
 	
 }
-
 func assertNotError(t testing.TB, got error) {
 	t.Helper()
 	if got != nil {

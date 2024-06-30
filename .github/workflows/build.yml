@@ -1,31 +1,33 @@
 on: 
   push:
     branches:
-      -development
-jobs:
-  golang-linter:
-  name: Lint code base
-  runs-on: ubuntu-latest
-  steps:
-      -name: Checkout code
-       uses: actions/checkout@v2
-        ref: development
+      - development
 
-      -name: Setup Go
+jobs:
+  golang-linter-and-go-test:
+    name: Lint code base and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: development
+
+      - name: Setup Go
         uses: actions/setup-go@v2
         with:
           go-version: '1.22.4'
 
-      -name : Run Super-linter
-       uses:  golangci/golangci-lint-action@v6
-
-      -name: Run vet & lint
+      - name: Install dependencies
         run: |
-          go vet .
-          golint .
+          go version
+          go get -u golang.org/x/lint/golint
+
+      - name: Run Super-linter
+        uses: golangci/golangci-lint-action@v6
+
       - name: Run testing
         run: cd pkg && go test -v
-       
-      env: 
-        DEFAULT_BRANCH: development
 
+    env: 
+      DEFAULT_BRANCH: development
