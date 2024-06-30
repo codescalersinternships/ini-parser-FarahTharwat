@@ -139,7 +139,7 @@ func TestGetSectionNames(t *testing.T) {
 		p := NewIniParser()
 		p.sections = OutputTestCase5
 		sectionNames, _ := p.GetSectionNames()
-		assertCorrectResult(t,sectionNames, OutputTestCase10)
+		assertCorrectResult(t, sectionNames, OutputTestCase10)
 	})
 	t.Run("testing section names from empty map testcase#11", func(t *testing.T) {
 		p := NewIniParser()
@@ -182,8 +182,8 @@ func TestString(t *testing.T) {
 		p := NewIniParser()
 		p.sections = OutputTestCase1
 		content := p.String()
-		p.LoadFromString(content)
-		assertCorrectResult(t,p.sections,OutputTestCase1)
+		_=p.LoadFromString(content)
+		assertCorrectResult(t, p.sections, OutputTestCase1)
 	})
 
 	t.Run("testing converting empty ini object to string testcase#17", func(t *testing.T) {
@@ -205,11 +205,11 @@ func TestSaveToFile(t *testing.T) {
 	t.Run("testing existing file to save into the ini object testcase#19", func(t *testing.T) {
 		p := NewIniParser()
 		p.sections = OutputTestCase1
-		p.SaveToFile("/mnt/h/recovery-keys/test.txt")
-		p2:= NewIniParser()
-		p2.LoadFromFile("/mnt/h/recovery-keys/test.txt")
-		sections,_:=p2.GetSections()
-		assertCorrectResult(t,sections,p.sections)
+		_ = p.SaveToFile("/mnt/h/recovery-keys/test.txt")
+		p2 := NewIniParser()
+		_ = p2.LoadFromFile("/mnt/h/recovery-keys/test.txt")
+		sections, _ := p2.GetSections()
+		assertCorrectResult(t, sections, p.sections)
 	})
 }
 

@@ -15,9 +15,9 @@ const (
 	ErrorEmptyMap      = "map is empty !"
 )
 
-type stringer interface {
-	String() string
-}
+// type stringer interface {
+// 	String() string
+// }
 type IniParser struct {
 	sections map[string]map[string]string
 }
