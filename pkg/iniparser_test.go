@@ -182,7 +182,7 @@ func TestString(t *testing.T) {
 		p := NewIniParser()
 		p.sections = OutputTestCase1
 		content := p.String()
-		_=p.LoadFromString(content)
+		_ = p.LoadFromString(content)
 		assertCorrectResult(t, p.sections, OutputTestCase1)
 	})
 
@@ -204,9 +204,9 @@ func TestSaveToFile(t *testing.T) {
 	t.Run("testing existing file to save into the ini object testcase#19", func(t *testing.T) {
 		p := NewIniParser()
 		p.sections = OutputTestCase1
-		_ = p.SaveToFile("/mnt/h/recovery-keys/test.txt")
+		_ = p.SaveToFile("../test.txt")
 		p2 := NewIniParser()
-		_ = p2.LoadFromFile("/mnt/h/recovery-keys/test.txt")
+		_ = p2.LoadFromFile("../test.txt")
 		sections, _ := p2.GetSections()
 		assertCorrectResult(t, sections, p.sections)
 	})
