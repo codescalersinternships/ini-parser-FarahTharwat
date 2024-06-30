@@ -103,7 +103,6 @@ func TestLoadFromFile(t *testing.T) {
 		p := NewIniParser()
 		_ = p.LoadFromFile(test.src)
 		assertCorrectResult(t, p.sections, test.want)
-
 	})
 }
 func TestGet(t *testing.T) {
