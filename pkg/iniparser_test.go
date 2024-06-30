@@ -194,7 +194,6 @@ func TestString(t *testing.T) {
 	})
 
 }
-
 func TestSaveToFile(t *testing.T) {
 	t.Run("testing not existing file or directory to save into the ini object testcase#18", func(t *testing.T) {
 		p := NewIniParser()
