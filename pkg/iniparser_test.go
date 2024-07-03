@@ -180,7 +180,7 @@ func TestSet(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	t.Run(fmt.Sprint("testing converting correct ini object into string testcases#16-17"), func(t *testing.T) {
+	t.Run("testing converting correct ini object into string testcases#16-17", func(t *testing.T) {
 		tests := []TestCase{
 			{src: validIniStringStartingWithComment, want: mapOutputValidIniStringStartingWithComment},
 			{src: "", want: EmptyMapOutput},
@@ -223,7 +223,7 @@ func TestStringer(t *testing.T) {
 		_ = p.LoadFromString(validIniStringExampleWithIntegerValuePair)
 		pContent := fmt.Sprint(p)
 		p2 := NewIniParser()
-		p2.LoadFromString(pContent)
+		_ = p2.LoadFromString(pContent)
 		//asserting that the state of p1 and p2 are the same
 		assertEqual(t, mapOutputValidIniStringExampleWithIntegerValuePair, p2.GetSections())
 	})
