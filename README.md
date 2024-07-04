@@ -10,10 +10,10 @@
 ### How to run 
 
 - If you want to run the tests of the APIs before using them, navigate to the `pkg` directory in your terminal using `cd pkg` and then run `go test -v`.
-- If you want to use the APIs in your code, follow this sequence: <br>
-    1- First, create an instance of INI Parser using the API `NewIniParser()`. <br>
-    2- Then, choose between loading the INI content from a file or as a string (from a variable) using `LoadFromString(text string)` or `LoadFromFile(path string)`. Ensure you provide a valid file path. <br>
-    3- After successful parsing, you can: <br>
+- If you want to use the APIs in your code, follow this sequence: 
+	- First, create an instance of INI Parser using the API `NewIniParser()`. <br>
+    - Then, choose between loading the INI content from a file or as a string (from a variable) using `LoadFromString(text string)` or `LoadFromFile(path string)`. Ensure you provide a valid file path. <br>
+    - After successful parsing, you can: <br>
         - Add key-pair values to a certain section using `Set(section string, key string, value string)`. <br>
         - Get all section names using `GetSectionNames()`.<br>
         - Get the value of a key in a certain section using `Get(section string, key string)`.<br>
