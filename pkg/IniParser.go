@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+/* Error constants used all over the codebase */
 const (
 	ErrOpeningFile   = "no such file or directory"
 	ErrMatchingPairs = "key-value pairs must be in the format key=value"
@@ -16,15 +17,25 @@ const (
 	ErrEmptyMap      = "map is empty !"
 )
 
+/*
+		A struct that defines/represents an INI Parser . It has sections which stores each section
+		with its corresponding key-pair values
+*/
 type IniParser struct {
 	sections map[string]map[string]string
 }
 
+/* 		A function to initialise the Parser's sections map    */
 func NewIniParser() *IniParser {
 	return &IniParser{
 		sections: make(map[string]map[string]string),
 	}
 }
+
+/*
+		This function parses each line in the text and checks the syntax of key-value pairs,sections...
+		This function returns if an error occured but also transforms the INI string into an INI Parser instance
+*/
 func (p *IniParser) parse(scanner *bufio.Scanner) error {
 	section := ""
 	bracketPattern := `^\[.+\]$`
@@ -57,6 +68,11 @@ func (p *IniParser) parse(scanner *bufio.Scanner) error {
 	}
 	return nil
 }
+
+/*
+		This function takes an INI string format as an input and returns if an error occurs. It also uses the parse function
+	    to fill at the end the Ini sections map.
+*/
 func (p *IniParser) LoadFromString(text string) error {
 	scanner := bufio.NewScanner(strings.NewReader(text))
 	err := p.parse(scanner)
@@ -65,6 +81,11 @@ func (p *IniParser) LoadFromString(text string) error {
 	}
 	return nil
 }
+
+/*
+		This function takes a file path as an input and returns if an error occurs (ex: file does not exist, wrong Ini file format..).
+	     It also uses the LoadFromString after converting the content of the file into string.
+*/
 func (p *IniParser) LoadFromFile(path string) error {
 	content, err := os.ReadFile(path)
 	if err != nil {
@@ -73,6 +94,10 @@ func (p *IniParser) LoadFromFile(path string) error {
 	return p.LoadFromString(string(content))
 }
 
+/*
+		This function takes the section name and the key as an input and returns if an error occurs (key does not exist..).
+	    If no erros , it retruns the value corresponding to the given key and section
+*/
 func (p *IniParser) Get(section string, key string) (string, error) {
 	if len(p.sections) == 0 {
 		return " ", fmt.Errorf(ErrEmptyMap)
@@ -86,6 +111,8 @@ func (p *IniParser) Get(section string, key string) (string, error) {
 	}
 	return " ", fmt.Errorf("key %s was not found", key)
 }
+
+/* 		This function returns a string slice containg the names of every existing section */
 func (p *IniParser) GetSectionNames() (sectionNames []string) {
 	var sections []string
 	for section := range p.sections {
@@ -93,10 +120,16 @@ func (p *IniParser) GetSectionNames() (sectionNames []string) {
 	}
 	return sections
 }
-func (p *IniParser) GetSections() (map[string]map[string]string) {
+
+/* 		This function returns a string slice containg the names of every existing section */
+func (p *IniParser) GetSections() map[string]map[string]string {
 	return p.sections
 }
 
+/*
+		This function sets a key-value pair to the given section.
+	    If section did not exist, a new section will be created
+*/
 func (p *IniParser) Set(section string, key string, value string) {
 	if _, ok := p.sections[section]; !ok {
 		log.Printf("warning : section %s did not exit however it has been created", section)
@@ -105,6 +138,10 @@ func (p *IniParser) Set(section string, key string, value string) {
 	p.sections[section][key] = value
 }
 
+/*
+		This function implements the Stringer interface as to be able to use fmt.Println(p) normally .
+	    It prints the Ini Parser struct into string
+*/
 func (p *IniParser) String() string {
 	text := ""
 	if p.sections == nil {
@@ -118,8 +155,10 @@ func (p *IniParser) String() string {
 	}
 	return text
 }
+
+/* 		This function takes a file path of a file and saves the Ini Parser interface into string in this file */
 func (p *IniParser) SaveToFile(path string) error {
-	file, err := os.OpenFile(path,os.O_APPEND|os.O_WRONLY,0644)
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
@@ -127,4 +166,3 @@ func (p *IniParser) SaveToFile(path string) error {
 	_, err = file.WriteString(p.String())
 	return err
 }
-
