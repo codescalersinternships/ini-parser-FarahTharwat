@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-/* Error constants used all over the codebase */
+/*    Error constants used all over the codebase    */
 const (
 	ErrOpeningFile   = "no such file or directory"
 	ErrMatchingPairs = "key-value pairs must be in the format key=value"
