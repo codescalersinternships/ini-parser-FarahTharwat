@@ -112,7 +112,7 @@ func (p *IniParser) Get(section string, key string) (string, error) {
 	return " ", fmt.Errorf("key %s was not found", key)
 }
 
-/* 		This function returns a string slice containg the names of every existing section */
+/* 		This function returns a string slice containg the names of every existing section   */
 func (p *IniParser) GetSectionNames() (sectionNames []string) {
 	var sections []string
 	for section := range p.sections {
